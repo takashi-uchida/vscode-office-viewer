@@ -1,0 +1,88 @@
+:root {
+  color-scheme: light dark;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--vscode-editor-background, #f3f3f3);
+  color: var(--vscode-editor-foreground, #1e1e1e);
+  font-family: var(--vscode-font-family, sans-serif);
+}
+
+.status {
+  padding: 16px;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.container {
+  padding: 16px;
+}
+
+/* ---- docx ---- */
+.docx-wrapper {
+  background: transparent !important;
+  padding: 0 !important;
+}
+.docx-wrapper > section.docx {
+  margin: 0 auto 16px auto;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+  background: #ffffff;
+  color: #000000;
+}
+
+/* ---- pdf ---- */
+.pdf-page {
+  display: block;
+  margin: 0 auto 16px auto;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.25);
+  background: #ffffff;
+}
+
+/* ---- xlsx ---- */
+.xlsx-tabs {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px 0;
+  background: var(--vscode-editor-background, #f3f3f3);
+  border-bottom: 1px solid var(--vscode-panel-border, #ccc);
+  z-index: 1;
+}
+.xlsx-tab {
+  border: 1px solid var(--vscode-panel-border, #ccc);
+  background: var(--vscode-button-secondaryBackground, #e7e7e7);
+  color: var(--vscode-button-secondaryForeground, #1e1e1e);
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  border-radius: 3px 3px 0 0;
+}
+.xlsx-tab.active {
+  background: var(--vscode-button-background, #0e639c);
+  color: var(--vscode-button-foreground, #ffffff);
+}
+.xlsx-sheet {
+  overflow: auto;
+  padding-top: 8px;
+}
+.xlsx-sheet table {
+  border-collapse: collapse;
+  background: #ffffff;
+  color: #000000;
+}
+.xlsx-sheet td,
+.xlsx-sheet th {
+  border: 1px solid #c0c0c0;
+  padding: 2px 6px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* ---- pptx ---- */
+.pptx-preview-wrapper {
+  margin: 0 auto;
+}

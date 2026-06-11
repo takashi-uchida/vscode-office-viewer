@@ -1,0 +1,108 @@
+{
+  "name": "office-viewer",
+  "displayName": "Office Viewer",
+  "description": "Read-only preview for .docx, .xlsx, .pdf and .pptx files inside VS Code",
+  "version": "0.0.1",
+  "publisher": "takashi-uchida",
+  "author": {
+    "name": "Takashi Uchida",
+    "email": "takashi.uchida.office@gmail.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/takashi-uchida/vscode-office-viewer"
+  },
+  "bugs": {
+    "url": "https://github.com/takashi-uchida/vscode-office-viewer/issues"
+  },
+  "homepage": "https://github.com/takashi-uchida/vscode-office-viewer#readme",
+  "keywords": [
+    "docx",
+    "xlsx",
+    "pdf",
+    "pptx",
+    "preview",
+    "office",
+    "word",
+    "excel",
+    "powerpoint",
+    "viewer"
+  ],
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "customEditors": [
+      {
+        "viewType": "officeViewer.docx",
+        "displayName": "Office Viewer (Word)",
+        "selector": [
+          {
+            "filenamePattern": "*.docx"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "officeViewer.xlsx",
+        "displayName": "Office Viewer (Excel)",
+        "selector": [
+          {
+            "filenamePattern": "*.xlsx"
+          },
+          {
+            "filenamePattern": "*.xlsm"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "officeViewer.pdf",
+        "displayName": "Office Viewer (PDF)",
+        "selector": [
+          {
+            "filenamePattern": "*.pdf"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "officeViewer.pptx",
+        "displayName": "Office Viewer (PowerPoint)",
+        "selector": [
+          {
+            "filenamePattern": "*.pptx"
+          }
+        ],
+        "priority": "default"
+      }
+    ]
+  },
+  "scripts": {
+    "compile": "node esbuild.mjs",
+    "watch": "node esbuild.mjs --watch",
+    "vscode:prepublish": "node esbuild.mjs --production",
+    "package": "vsce package",
+    "publish": "vsce publish",
+    "publish:ovsx": "npx ovsx publish"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.0.0",
+    "esbuild": "^0.21.5",
+    "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "docx-preview": "^0.3.3",
+    "pdfjs-dist": "^4.4.168",
+    "pptx-preview": "^1.0.4",
+    "xlsx": "^0.18.5"
+  }
+}
