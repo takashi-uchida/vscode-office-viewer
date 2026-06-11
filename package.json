@@ -1,6 +1,6 @@
 {
-  "name": "office-viewer",
-  "displayName": "Office Viewer",
+  "name": "vscode-office-viewer",
+  "displayName": "Office File Preview",
   "description": "Read-only preview for .docx, .xlsx, .pdf and .pptx files inside VS Code",
   "version": "0.0.1",
   "publisher": "takashi-uchida",
