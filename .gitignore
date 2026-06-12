@@ -2,3 +2,7 @@ node_modules/
 dist/
 media/pdf.worker.min.mjs
 *.vsix
+.claude/
+.codex/
+.entire/
+.kiro/
