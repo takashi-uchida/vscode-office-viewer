@@ -10,3 +10,4 @@ tsconfig.json
 .entire/**
 .kiro/**
 *.vsix
+icon-philosophy.md
