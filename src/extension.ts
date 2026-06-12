@@ -6,6 +6,8 @@ const VIEW_TYPES: { viewType: string; kind: ViewerKind }[] = [
   { viewType: 'officeViewer.xlsx', kind: 'xlsx' },
   { viewType: 'officeViewer.pdf', kind: 'pdf' },
   { viewType: 'officeViewer.pptx', kind: 'pptx' },
+  { viewType: 'officeViewer.mermaid', kind: 'mermaid' },
+  { viewType: 'officeViewer.html', kind: 'html' },
 ];
 
 export function activate(context: vscode.ExtensionContext): void {

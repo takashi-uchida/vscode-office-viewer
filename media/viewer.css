@@ -86,3 +86,27 @@ body {
 .pptx-preview-wrapper {
   margin: 0 auto;
 }
+
+/* ---- mermaid ---- */
+.mermaid-wrap {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0;
+}
+.mermaid-wrap svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ---- html ---- */
+.html-frame {
+  display: block;
+  width: 100%;
+  height: calc(100vh - 8px);
+  border: none;
+  background: #ffffff;
+}
+/* Remove container padding for html so the iframe fills the panel */
+.container:has(.html-frame) {
+  padding: 0;
+}

@@ -59,6 +59,8 @@ const webviewConfig = {
     'webview-xlsx': 'src/webview/entry-xlsx.ts',
     'webview-pdf': 'src/webview/entry-pdf.ts',
     'webview-pptx': 'src/webview/entry-pptx.ts',
+    'webview-mermaid': 'src/webview/entry-mermaid.ts',
+    'webview-html': 'src/webview/entry-html.ts',
   },
   outdir: 'dist',
   platform: 'browser',

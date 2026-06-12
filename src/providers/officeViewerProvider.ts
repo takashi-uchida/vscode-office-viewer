@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { randomBytes } from 'node:crypto';
 
-export type ViewerKind = 'docx' | 'xlsx' | 'pdf' | 'pptx';
+export type ViewerKind = 'docx' | 'xlsx' | 'pdf' | 'pptx' | 'mermaid' | 'html';
 
 /**
  * A read-only custom editor that renders an office/pdf document inside a
@@ -89,6 +89,8 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
       `script-src 'nonce-${nonce}' ${webview.cspSource}`,
       `worker-src ${webview.cspSource} blob:`,
       `connect-src ${webview.cspSource} blob: data:`,
+      // HTML preview uses a sandboxed blob: iframe.
+      `frame-src blob:`,
     ].join('; ');
 
     return `<!DOCTYPE html>
