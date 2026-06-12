@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { randomBytes } from 'node:crypto';
 
-export type ViewerKind = 'docx' | 'xlsx' | 'pdf' | 'pptx' | 'mermaid' | 'html';
+export type ViewerKind = 'docx' | 'xlsx' | 'pdf' | 'pptx' | 'mermaid' | 'html' | 'markdown';
 
 /**
  * A read-only custom editor that renders an office/pdf document inside a

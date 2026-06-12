@@ -8,6 +8,7 @@ const VIEW_TYPES: { viewType: string; kind: ViewerKind }[] = [
   { viewType: 'officeViewer.pptx', kind: 'pptx' },
   { viewType: 'officeViewer.mermaid', kind: 'mermaid' },
   { viewType: 'officeViewer.html', kind: 'html' },
+  { viewType: 'officeViewer.markdown', kind: 'markdown' },
 ];
 
 export function activate(context: vscode.ExtensionContext): void {

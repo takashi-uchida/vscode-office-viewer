@@ -61,6 +61,7 @@ const webviewConfig = {
     'webview-pptx': 'src/webview/entry-pptx.ts',
     'webview-mermaid': 'src/webview/entry-mermaid.ts',
     'webview-html': 'src/webview/entry-html.ts',
+    'webview-markdown': 'src/webview/entry-markdown.ts',
   },
   outdir: 'dist',
   platform: 'browser',
