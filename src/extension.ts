@@ -4,6 +4,7 @@ import { OfficeViewerProvider, ViewerKind } from './providers/officeViewerProvid
 const VIEW_TYPES: { viewType: string; kind: ViewerKind }[] = [
   { viewType: 'officeViewer.docx', kind: 'docx' },
   { viewType: 'officeViewer.xlsx', kind: 'xlsx' },
+  { viewType: 'officeViewer.csv', kind: 'csv' },
   { viewType: 'officeViewer.pdf', kind: 'pdf' },
   { viewType: 'officeViewer.pptx', kind: 'pptx' },
   { viewType: 'officeViewer.mermaid', kind: 'mermaid' },

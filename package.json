@@ -1,8 +1,8 @@
 {
   "name": "vscode-office-viewer",
   "displayName": "Office File Preview",
-  "description": "Read-only preview for .docx, .xlsx, .pdf and .pptx files inside VS Code",
-  "version": "0.3.0",
+  "description": "Read-only preview for .docx, .xlsx, .csv, .pdf and .pptx files inside VS Code",
+  "version": "0.3.2",
   "publisher": "takashi-uchida",
   "author": {
     "name": "Takashi Uchida",
@@ -21,6 +21,7 @@
   "keywords": [
     "docx",
     "xlsx",
+    "csv",
     "pdf",
     "pptx",
     "preview",
@@ -62,6 +63,16 @@
           }
         ],
         "priority": "default"
+      },
+      {
+        "viewType": "officeViewer.csv",
+        "displayName": "Office File Preview (CSV)",
+        "selector": [
+          {
+            "filenamePattern": "*.csv"
+          }
+        ],
+        "priority": "option"
       },
       {
         "viewType": "officeViewer.pdf",

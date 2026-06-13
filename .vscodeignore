@@ -5,6 +5,7 @@ esbuild.mjs
 tsconfig.json
 **/*.map
 .gitignore
+.github/**
 .claude/**
 .codex/**
 .entire/**

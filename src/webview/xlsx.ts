@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { appendWorksheetTable } from './sheetTable';
 
 export function renderXlsx(bytes: Uint8Array, container: HTMLElement): void {
   const workbook = XLSX.read(bytes, { type: 'array' });
@@ -32,13 +33,7 @@ export function renderXlsx(bytes: Uint8Array, container: HTMLElement): void {
     const worksheet = workbook.Sheets[name];
     const pane = document.createElement('div');
     pane.className = 'xlsx-sheet';
-    // sheet_to_html returns a full <html> document; extract just the <table>
-    // rather than injecting <html>/<head>/<body> into a <div>.
-    const html = XLSX.utils.sheet_to_html(worksheet, { editable: false });
-    const table = new DOMParser().parseFromString(html, 'text/html').querySelector('table');
-    if (table) {
-      pane.appendChild(document.importNode(table, true));
-    }
+    appendWorksheetTable(worksheet, pane);
     pane.style.display = index === 0 ? 'block' : 'none';
     sheetsWrap.appendChild(pane);
     panes.push(pane);
