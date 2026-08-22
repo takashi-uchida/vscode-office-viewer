@@ -63,6 +63,7 @@ const webviewConfig = {
     'webview-mermaid': 'src/webview/entry-mermaid.ts',
     'webview-html': 'src/webview/entry-html.ts',
     'webview-markdown': 'src/webview/entry-markdown.ts',
+    'webview-marp': 'src/webview/entry-marp.ts',
   },
   outdir: 'dist',
   platform: 'browser',

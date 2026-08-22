@@ -1,6 +1,6 @@
 # Office File Preview
 
-Read-only preview for office documents, PDFs, diagrams, and markup files directly inside VS Code.
+Read-only preview for office documents, PDFs, diagrams, presentations, and markup files directly inside VS Code.
 
 ## Supported Formats
 
@@ -11,6 +11,7 @@ Read-only preview for office documents, PDFs, diagrams, and markup files directl
 | CSV | `.csv` | Lightweight table preview with UTF-8 and Shift_JIS decoding |
 | PDF | `.pdf` | [pdf.js](https://mozilla.github.io/pdf.js/) — all pages, high-resolution canvas |
 | PowerPoint | `.pptx` | [pptx-preview](https://github.com/meshesha/pptx-preview) — slides in list view |
+| Marp Slides | `.marp.md` | [Marp Core](https://github.com/marp-team/marp-core) — スライドプレビュー with navigation |
 | Mermaid | `.mmd`, `.mermaid` | [Mermaid](https://mermaid.js.org/) — flowcharts, sequence diagrams, Gantt, etc. |
 | HTML | `.html`, `.htm` | Sandboxed iframe preview |
 | Markdown | `.md`, `.markdown` | Rendered markdown with embedded Mermaid diagrams |
@@ -19,9 +20,21 @@ All previews are **read-only**. Files are never modified.
 
 ## Usage
 
-Opening a `.docx`, `.xlsx`, `.pdf`, `.pptx`, `.mmd`, or `.mermaid` file automatically shows the preview.
+Opening a `.docx`, `.xlsx`, `.pdf`, `.pptx`, `.mmd`, `.mermaid`, or `.marp.md` file automatically shows the preview.
 
 For `.csv`, `.html`, `.htm`, `.md`, and `.markdown` files (which have built-in VS Code editors), right-click the file → **Reopen Editor With…** → **Office File Preview (...)** to switch to the preview.
+
+## Marp Slides Preview
+
+Files with the `.marp.md` extension are automatically opened as slide presentations.
+
+For regular `.md` files with `marp: true` in the frontmatter, right-click → **Reopen Editor With…** → **Office File Preview (Marp Slides)**.
+
+Features:
+- Slide-by-slide navigation (← → keys or buttons)
+- All-slides overview mode
+- Dark/light theme follows VS Code
+- HTML rendering enabled
 
 ## Mermaid in Markdown
 
@@ -41,3 +54,4 @@ graph TD
 - pptx rendering faithfulness depends on slide complexity (animations and SmartArt may not render correctly)
 - Large PDFs (200+ pages) render all pages at once; initial load may take a moment
 - HTML preview uses a sandboxed iframe; resources with absolute external URLs may not load
+- Marp slides: custom themes (CSS files) are not yet supported; only built-in themes (default, gaia, uncover)

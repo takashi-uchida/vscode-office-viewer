@@ -10,6 +10,7 @@ const VIEW_TYPES: { viewType: string; kind: ViewerKind }[] = [
   { viewType: 'officeViewer.mermaid', kind: 'mermaid' },
   { viewType: 'officeViewer.html', kind: 'html' },
   { viewType: 'officeViewer.markdown', kind: 'markdown' },
+  { viewType: 'officeViewer.marp', kind: 'marp' },
 ];
 
 export function activate(context: vscode.ExtensionContext): void {

@@ -9,7 +9,8 @@ export type ViewerKind =
   | 'pptx'
   | 'mermaid'
   | 'html'
-  | 'markdown';
+  | 'markdown'
+  | 'marp';
 
 /**
  * A read-only custom editor that renders an office/pdf document inside a
