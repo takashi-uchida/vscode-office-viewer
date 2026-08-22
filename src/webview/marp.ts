@@ -6,8 +6,6 @@ export async function renderMarp(bytes: Uint8Array, container: HTMLElement): Pro
   // Marp スライドかどうかを判定（frontmatter に marp: true が含まれる）
   const isMarp = /^---\s*\n[\s\S]*?marp:\s*true[\s\S]*?\n---/m.test(text);
   if (!isMarp) {
-    // Marp スライドでない場合は null を返し、通常の Markdown レンダラーにフォールバック
-    container.dataset.fallback = 'markdown';
     throw new Error('__FALLBACK_MARKDOWN__');
   }
 
@@ -22,131 +20,165 @@ export async function renderMarp(bytes: Uint8Array, container: HTMLElement): Pro
 
   const { html, css } = marp.render(text);
 
-  // スライド用のスタイルとレイアウトを構築
-  const wrapper = document.createElement('div');
-  wrapper.className = 'marp-slides';
+  // Marp の出力を iframe 内に表示することで、スタイルの干渉を防ぐ
+  const slideHtml = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+${css}
 
-  const styleEl = document.createElement('style');
-  styleEl.textContent = `
-    ${css}
-    .marp-slides {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 24px;
-      padding: 24px;
-      background: ${isDark ? '#1e1e1e' : '#e8e8e8'};
-    }
-    .marp-slides > svg {
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      border-radius: 4px;
-      max-width: 100%;
-      height: auto;
-    }
-    .marp-nav {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 8px 16px;
-      background: ${isDark ? '#2d2d2d' : '#f5f5f5'};
-      border-bottom: 1px solid ${isDark ? '#444' : '#ddd'};
-      font-size: 13px;
-      color: ${isDark ? '#ccc' : '#333'};
-    }
-    .marp-nav button {
-      padding: 4px 12px;
-      border: 1px solid ${isDark ? '#555' : '#ccc'};
-      border-radius: 4px;
-      background: ${isDark ? '#3c3c3c' : '#fff'};
-      color: ${isDark ? '#ccc' : '#333'};
-      cursor: pointer;
-      font-size: 13px;
-    }
-    .marp-nav button:hover {
-      background: ${isDark ? '#4a4a4a' : '#e8e8e8'};
-    }
-  `;
+/* スライド一覧表示用のスタイル */
+body {
+  margin: 0;
+  padding: 16px;
+  background: ${isDark ? '#1e1e1e' : '#e8e8e8'};
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+body.single-mode {
+  padding: 0;
+  background: transparent;
+  display: block;
+}
+body.single-mode > svg[data-marpit-svg] {
+  width: 100vw;
+  height: 100vh;
+  display: none;
+}
+body.single-mode > svg[data-marpit-svg].active {
+  display: block;
+}
+body.list-mode > svg[data-marpit-svg] {
+  max-width: 100%;
+  height: auto;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+  border-radius: 4px;
+}
 
-  container.appendChild(styleEl);
+/* ナビゲーションバー */
+#nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background: ${isDark ? 'rgba(30,30,30,0.95)' : 'rgba(255,255,255,0.95)'};
+  border-top: 1px solid ${isDark ? '#444' : '#ddd'};
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 13px;
+  color: ${isDark ? '#ccc' : '#333'};
+  z-index: 1000;
+  backdrop-filter: blur(8px);
+}
+#nav button {
+  padding: 6px 14px;
+  border: 1px solid ${isDark ? '#555' : '#ccc'};
+  border-radius: 6px;
+  background: ${isDark ? '#3c3c3c' : '#fff'};
+  color: ${isDark ? '#ccc' : '#333'};
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.15s;
+}
+#nav button:hover {
+  background: ${isDark ? '#4a4a4a' : '#e8e8e8'};
+}
+#nav button:active {
+  background: ${isDark ? '#555' : '#ddd'};
+}
+#nav button.active-mode {
+  background: ${isDark ? '#0078d4' : '#0078d4'};
+  color: #fff;
+  border-color: ${isDark ? '#0078d4' : '#005a9e'};
+}
+#nav span {
+  min-width: 80px;
+  text-align: center;
+}
+</style>
+</head>
+<body class="single-mode">
+${html}
+<div id="nav">
+  <button id="prevBtn">◀ 前</button>
+  <span id="pageInfo">1 / 1</span>
+  <button id="nextBtn">次 ▶</button>
+  <button id="listBtn">一覧</button>
+</div>
+<script>
+(function() {
+  const slides = document.querySelectorAll('svg[data-marpit-svg]');
+  const total = slides.length;
+  let current = 0;
+  let listMode = false;
+  const pageInfo = document.getElementById('pageInfo');
+  const listBtn = document.getElementById('listBtn');
 
-  // スライドをパースして個別表示
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = html;
-  const slides = tempDiv.querySelectorAll('svg[data-marpit-svg]');
-  const totalSlides = slides.length;
-
-  // ナビゲーションバー
-  const nav = document.createElement('div');
-  nav.className = 'marp-nav';
-
-  const prevBtn = document.createElement('button');
-  prevBtn.textContent = '◀ 前';
-  const nextBtn = document.createElement('button');
-  nextBtn.textContent = '次 ▶';
-  const pageInfo = document.createElement('span');
-  const viewAllBtn = document.createElement('button');
-  viewAllBtn.textContent = '一覧表示';
-
-  nav.appendChild(prevBtn);
-  nav.appendChild(pageInfo);
-  nav.appendChild(nextBtn);
-  nav.appendChild(viewAllBtn);
-  container.appendChild(nav);
-  container.appendChild(wrapper);
-
-  let currentSlide = 0;
-  let viewAll = false;
-
-  const renderView = () => {
-    wrapper.innerHTML = '';
-    if (viewAll) {
-      // 一覧モード
-      for (const slide of slides) {
-        wrapper.appendChild(slide.cloneNode(true));
-      }
-      pageInfo.textContent = `全 ${totalSlides} スライド`;
-      viewAllBtn.textContent = 'スライド表示';
+  function render() {
+    if (listMode) {
+      document.body.className = 'list-mode';
+      slides.forEach(s => s.style.display = '');
+      pageInfo.textContent = total + ' スライド';
+      listBtn.textContent = 'スライド';
+      listBtn.classList.add('active-mode');
     } else {
-      // 単一スライドモード
-      if (slides[currentSlide]) {
-        wrapper.appendChild(slides[currentSlide].cloneNode(true));
-      }
-      pageInfo.textContent = `${currentSlide + 1} / ${totalSlides}`;
-      viewAllBtn.textContent = '一覧表示';
+      document.body.className = 'single-mode';
+      slides.forEach((s, i) => {
+        s.classList.toggle('active', i === current);
+      });
+      pageInfo.textContent = (current + 1) + ' / ' + total;
+      listBtn.textContent = '一覧';
+      listBtn.classList.remove('active-mode');
     }
+  }
+
+  document.getElementById('prevBtn').onclick = function() {
+    if (!listMode && current > 0) { current--; render(); }
+  };
+  document.getElementById('nextBtn').onclick = function() {
+    if (!listMode && current < total - 1) { current++; render(); }
+  };
+  document.getElementById('listBtn').onclick = function() {
+    listMode = !listMode; render();
   };
 
-  prevBtn.addEventListener('click', () => {
-    if (!viewAll && currentSlide > 0) {
-      currentSlide--;
-      renderView();
-    }
-  });
-
-  nextBtn.addEventListener('click', () => {
-    if (!viewAll && currentSlide < totalSlides - 1) {
-      currentSlide++;
-      renderView();
-    }
-  });
-
-  viewAllBtn.addEventListener('click', () => {
-    viewAll = !viewAll;
-    renderView();
-  });
-
-  // キーボードナビゲーション
-  document.addEventListener('keydown', (e) => {
-    if (viewAll) return;
+  document.addEventListener('keydown', function(e) {
+    if (listMode) return;
     if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      if (currentSlide > 0) { currentSlide--; renderView(); }
+      if (current > 0) { current--; render(); }
     } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
-      if (currentSlide < totalSlides - 1) { currentSlide++; renderView(); }
+      e.preventDefault();
+      if (current < total - 1) { current++; render(); }
+    } else if (e.key === 'Home') {
+      current = 0; render();
+    } else if (e.key === 'End') {
+      current = total - 1; render();
     }
   });
 
-  renderView();
+  render();
+})();
+</script>
+</body>
+</html>`;
+
+  // iframe でスライドを表示（Marp CSSがホストと干渉しない）
+  const iframe = document.createElement('iframe');
+  iframe.style.cssText = 'width:100%;height:100%;border:none;position:absolute;top:0;left:0;right:0;bottom:0;';
+  iframe.sandbox.add('allow-scripts');
+  container.style.position = 'relative';
+  container.style.width = '100%';
+  container.style.height = '100%';
+  container.appendChild(iframe);
+
+  // blob URL で iframe にコンテンツを設定
+  const blob = new Blob([slideHtml], { type: 'text/html' });
+  iframe.src = URL.createObjectURL(blob);
 }

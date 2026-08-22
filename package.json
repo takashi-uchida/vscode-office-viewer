@@ -2,7 +2,7 @@
   "name": "vscode-office-viewer",
   "displayName": "Office File Preview",
   "description": "Read-only preview for .docx, .xlsx, .csv, .pdf, .pptx files and Marp slides inside VS Code",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "publisher": "takashi-uchida",
   "author": {
     "name": "Takashi Uchida",
