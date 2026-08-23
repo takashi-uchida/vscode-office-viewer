@@ -1,5 +1,14 @@
 # Changelog
 
+
+## 0.4.3 (2026-08-23)
+
+### Fixed
+- Preserve Marp Core's required `div.marpit > svg > foreignObject > section` DOM hierarchy so built-in and inline theme CSS applies correctly
+- Scale the active SVG to the available viewport while preserving its 16:9 `viewBox`
+- Keep the required `div.marpit` wrapper in overview mode as well
+- Make the Marp preview use the full webview area below the navigation bar
+
 ## 0.4.0 (2026-08-22)
 
 ### Added

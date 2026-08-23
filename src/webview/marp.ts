@@ -1,163 +1,185 @@
 import { Marp } from '@marp-team/marp-core';
 
 export async function renderMarp(bytes: Uint8Array, container: HTMLElement): Promise<void> {
-  const text = new TextDecoder().decode(bytes);
+  const markdown = new TextDecoder().decode(bytes);
 
-  const isMarp = /^---\s*\n[\s\S]*?marp:\s*true[\s\S]*?\n---/m.test(text);
-  if (!isMarp) {
-    throw new Error('__FALLBACK_MARKDOWN__');
+  if (!/^---\s*\n[\s\S]*?marp:\s*true[\s\S]*?\n---/m.test(markdown)) {
+    throw new Error('Marp front matter (marp: true) が見つかりません。');
   }
 
-  const isDark =
+  const dark =
     document.body.classList.contains('vscode-dark') ||
     document.body.classList.contains('vscode-high-contrast');
 
-  const marp = new Marp({
-    html: true,
-    math: false,
-  });
+  const { html, css } = new Marp({ html: true, math: false }).render(markdown);
 
-  const { html, css } = marp.render(text);
+  // Marp の CSS は `div.marpit > svg > foreignObject > section` を前提とする。
+  // SVG だけを取り出さず、生成された div.marpit をそのまま Shadow DOM 内に保持する。
+  const parsed = document.createElement('template');
+  parsed.innerHTML = html;
+  const sourceMarpit = parsed.content.querySelector<HTMLDivElement>('div.marpit');
+  if (!sourceMarpit) {
+    throw new Error('Marp の生成HTMLに div.marpit が見つかりません。');
+  }
 
-  // ナビゲーション UI を container に直接構築
-  container.innerHTML = '';
-  container.style.cssText = 'display:flex;flex-direction:column;height:100%;overflow:hidden;';
+  const total = sourceMarpit.querySelectorAll(':scope > svg[data-marpit-svg]').length;
+  if (total === 0) {
+    throw new Error('Marp スライドが生成されませんでした。');
+  }
 
-  // ナビバー
+  container.replaceChildren();
+  container.classList.add('marp-container');
+  container.style.cssText = 'display:flex;flex-direction:column;width:100%;height:100%;overflow:hidden;';
+
   const nav = document.createElement('div');
-  nav.style.cssText = `
-    display:flex;align-items:center;justify-content:center;gap:12px;
-    padding:8px 16px;
-    background:${isDark ? '#2d2d2d' : '#f5f5f5'};
-    border-bottom:1px solid ${isDark ? '#444' : '#ddd'};
-    font-size:13px;color:${isDark ? '#ccc' : '#333'};
-    flex-shrink:0;
-  `;
+  nav.className = 'marp-preview-nav';
 
-  const prevBtn = document.createElement('button');
-  prevBtn.textContent = '◀ 前';
-  const nextBtn = document.createElement('button');
-  nextBtn.textContent = '次 ▶';
-  const pageInfo = document.createElement('span');
-  pageInfo.style.minWidth = '80px';
-  pageInfo.style.textAlign = 'center';
-  const listBtn = document.createElement('button');
-  listBtn.textContent = '一覧';
+  const prevButton = button('◀ 前');
+  const page = document.createElement('span');
+  page.className = 'marp-preview-page';
+  const nextButton = button('次 ▶');
+  const modeButton = button('一覧');
 
-  const btnStyle = `
-    padding:5px 12px;border:1px solid ${isDark ? '#555' : '#ccc'};
-    border-radius:4px;background:${isDark ? '#3c3c3c' : '#fff'};
-    color:${isDark ? '#ccc' : '#333'};cursor:pointer;font-size:13px;
-  `;
-  prevBtn.style.cssText = btnStyle;
-  nextBtn.style.cssText = btnStyle;
-  listBtn.style.cssText = btnStyle;
+  nav.append(prevButton, page, nextButton, modeButton);
 
-  nav.appendChild(prevBtn);
-  nav.appendChild(pageInfo);
-  nav.appendChild(nextBtn);
-  nav.appendChild(listBtn);
-  container.appendChild(nav);
+  const viewport = document.createElement('div');
+  viewport.className = 'marp-preview-viewport';
+  const shadow = viewport.attachShadow({ mode: 'open' });
 
-  // スライド表示エリア
-  const slideArea = document.createElement('div');
-  slideArea.style.cssText = 'flex:1;overflow:auto;position:relative;';
-  container.appendChild(slideArea);
+  const style = document.createElement('style');
+  style.textContent = `${css}
+:host {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+}
+.viewport {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background: ${dark ? '#1e1e1e' : '#e8e8e8'};
+}
+div.marpit {
+  box-sizing: border-box;
+}
+.viewport.single div.marpit {
+  width: 100%;
+  height: 100%;
+}
+.viewport.single div.marpit > svg[data-marpit-svg] {
+  display: none;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+.viewport.single div.marpit > svg[data-marpit-svg].active {
+  display: block;
+}
+.viewport.list {
+  padding: 24px;
+}
+.viewport.list div.marpit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+.viewport.list div.marpit > svg[data-marpit-svg] {
+  display: block;
+  width: min(100%, 1280px);
+  height: auto;
+  flex: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+`;
 
-  // Shadow DOM でスタイル分離
-  const shadow = slideArea.attachShadow({ mode: 'open' });
+  const shadowViewport = document.createElement('div');
+  shadowViewport.className = 'viewport single';
+  const marpit = sourceMarpit.cloneNode(true) as HTMLDivElement;
+  shadowViewport.appendChild(marpit);
+  shadow.append(style, shadowViewport);
 
-  const styleEl = document.createElement('style');
-  styleEl.textContent = `
-    ${css}
-    :host {
-      display: block;
-      width: 100%;
-      height: 100%;
-    }
-    .slide-wrapper {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: ${isDark ? '#1e1e1e' : '#e8e8e8'};
-    }
-    .slide-wrapper > svg[data-marpit-svg] {
-      max-width: 95%;
-      max-height: 95%;
-    }
-    .list-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      padding: 16px;
-      background: ${isDark ? '#1e1e1e' : '#e8e8e8'};
-    }
-    .list-wrapper > svg[data-marpit-svg] {
-      max-width: 90%;
-      height: auto;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-      border-radius: 4px;
-    }
-  `;
-  shadow.appendChild(styleEl);
+  container.append(nav, viewport);
 
-  const contentDiv = document.createElement('div');
-  shadow.appendChild(contentDiv);
-
-  // スライドの SVG を取得
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = html;
-  const slides = Array.from(tempDiv.querySelectorAll('svg[data-marpit-svg]'));
-  const total = slides.length;
-
+  const slides = Array.from(
+    marpit.querySelectorAll<SVGElement>(':scope > svg[data-marpit-svg]')
+  );
   let current = 0;
   let listMode = false;
 
-  function render() {
-    contentDiv.innerHTML = '';
-    if (listMode) {
-      contentDiv.className = 'list-wrapper';
-      for (const slide of slides) {
-        contentDiv.appendChild(slide.cloneNode(true));
-      }
-      pageInfo.textContent = `${total} スライド`;
-      listBtn.textContent = 'スライド';
-    } else {
-      contentDiv.className = 'slide-wrapper';
-      if (slides[current]) {
-        contentDiv.appendChild(slides[current].cloneNode(true));
-      }
-      pageInfo.textContent = `${current + 1} / ${total}`;
-      listBtn.textContent = '一覧';
+  const render = () => {
+    shadowViewport.className = listMode ? 'viewport list' : 'viewport single';
+    slides.forEach((slide, index) => slide.classList.toggle('active', !listMode && index === current));
+    page.textContent = listMode ? `${total} スライド` : `${current + 1} / ${total}`;
+    modeButton.textContent = listMode ? 'スライド' : '一覧';
+    prevButton.disabled = listMode || current === 0;
+    nextButton.disabled = listMode || current === total - 1;
+    if (listMode) shadowViewport.scrollTop = 0;
+  };
+
+  prevButton.addEventListener('click', () => {
+    if (!listMode && current > 0) {
+      current -= 1;
+      render();
     }
-  }
+  });
+  nextButton.addEventListener('click', () => {
+    if (!listMode && current < total - 1) {
+      current += 1;
+      render();
+    }
+  });
+  modeButton.addEventListener('click', () => {
+    listMode = !listMode;
+    render();
+  });
 
-  prevBtn.addEventListener('click', () => {
-    if (!listMode && current > 0) { current--; render(); }
-  });
-  nextBtn.addEventListener('click', () => {
-    if (!listMode && current < total - 1) { current++; render(); }
-  });
-  listBtn.addEventListener('click', () => {
-    listMode = !listMode; render();
-  });
-
-  document.addEventListener('keydown', (e) => {
+  const keydown = (event: KeyboardEvent) => {
     if (listMode) return;
-    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-      if (current > 0) { current--; render(); }
-    } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
-      e.preventDefault();
-      if (current < total - 1) { current++; render(); }
-    } else if (e.key === 'Home') {
-      current = 0; render();
-    } else if (e.key === 'End') {
-      current = total - 1; render();
+    if (event.key === 'ArrowLeft' || event.key === 'ArrowUp' || event.key === 'PageUp') {
+      if (current > 0) current -= 1;
+      event.preventDefault();
+      render();
+    } else if (
+      event.key === 'ArrowRight' ||
+      event.key === 'ArrowDown' ||
+      event.key === 'PageDown' ||
+      event.key === ' '
+    ) {
+      if (current < total - 1) current += 1;
+      event.preventDefault();
+      render();
+    } else if (event.key === 'Home') {
+      current = 0;
+      event.preventDefault();
+      render();
+    } else if (event.key === 'End') {
+      current = total - 1;
+      event.preventDefault();
+      render();
     }
-  });
+  };
+  document.addEventListener('keydown', keydown);
 
   render();
+}
+
+function button(label: string): HTMLButtonElement {
+  const element = document.createElement('button');
+  element.type = 'button';
+  element.textContent = label;
+  element.style.cssText = [
+    'padding:5px 12px',
+    'border:1px solid var(--vscode-button-border, transparent)',
+    'border-radius:4px',
+    'background:var(--vscode-button-secondaryBackground, #3c3c3c)',
+    'color:var(--vscode-button-secondaryForeground, #fff)',
+    'cursor:pointer',
+    'font-size:13px',
+  ].join(';');
+  return element;
 }
