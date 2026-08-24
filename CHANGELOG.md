@@ -1,6 +1,15 @@
 # Changelog
 
 
+## 0.4.5 (2026-08-24)
+
+### Changed
+- Make the Marp navigation controls a compact, content-width floating toolbar
+- Reduce control height, padding, gaps, and label widths
+- Render **Fit** mode at 90% of the available area for comfortable margins around the slide
+- Keep **Width** mode available for users who want the slide to fill the editor width
+
+
 ## 0.4.4 (2026-08-24)
 
 ### Added

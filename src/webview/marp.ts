@@ -6,6 +6,7 @@ const MIN_ZOOM = 25;
 const MAX_ZOOM = 300;
 const ZOOM_STEP = 10;
 const SLIDE_PADDING = 32;
+const FIT_SCALE_RATIO = 0.9;
 
 export async function renderMarp(bytes: Uint8Array, container: HTMLElement): Promise<void> {
   const markdown = new TextDecoder().decode(bytes);
@@ -151,7 +152,8 @@ div.marpit {
   const scales = () => {
     const availableWidth = Math.max(1, shadowViewport.clientWidth - SLIDE_PADDING);
     const availableHeight = Math.max(1, shadowViewport.clientHeight - SLIDE_PADDING);
-    const fitScale = Math.min(availableWidth / slideWidth, availableHeight / slideHeight);
+    const fitScale =
+      Math.min(availableWidth / slideWidth, availableHeight / slideHeight) * FIT_SCALE_RATIO;
     const widthScale = availableWidth / slideWidth;
     return { fitScale, widthScale };
   };

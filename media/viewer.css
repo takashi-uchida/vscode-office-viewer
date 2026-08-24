@@ -216,26 +216,32 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  align-self: center;
   flex-wrap: wrap;
-  column-gap: 8px;
-  row-gap: 6px;
-  min-height: 48px;
-  padding: 8px 16px;
+  column-gap: 5px;
+  row-gap: 4px;
+  width: fit-content;
+  max-width: calc(100% - 16px);
+  min-height: 38px;
+  margin: 6px auto;
+  padding: 4px 8px;
   flex: 0 0 auto;
   background: var(--vscode-editorWidget-background, #252526);
-  border-bottom: 1px solid var(--vscode-panel-border, #444);
+  border: 1px solid var(--vscode-panel-border, #444);
+  border-radius: 7px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.22);
   color: var(--vscode-editor-foreground, #ccc);
 }
 .marp-preview-nav button {
   box-sizing: border-box;
-  min-height: 30px;
-  padding: 4px 10px;
+  min-height: 26px;
+  padding: 2px 7px;
   border: 1px solid var(--vscode-button-border, transparent);
   border-radius: 4px;
   background: var(--vscode-button-secondaryBackground, #3c3c3c);
   color: var(--vscode-button-secondaryForeground, #fff);
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
 }
 .marp-preview-nav button:hover:not(:disabled) {
   background: var(--vscode-button-secondaryHoverBackground, #505050);
@@ -251,20 +257,20 @@ body {
 }
 .marp-preview-separator {
   width: 1px;
-  height: 22px;
-  margin: 0 2px;
+  height: 18px;
+  margin: 0 1px;
   background: var(--vscode-panel-border, #555);
 }
 .marp-preview-scale {
-  min-width: 44px;
+  min-width: 38px;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
   font-variant-numeric: tabular-nums;
 }
 .marp-preview-page {
-  min-width: 80px;
+  min-width: 62px;
   text-align: center;
-  font-size: 13px;
+  font-size: 12px;
 }
 .marp-preview-viewport {
   flex: 1 1 auto;
