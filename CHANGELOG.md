@@ -1,6 +1,17 @@
 # Changelog
 
 
+## 0.4.4 (2026-08-24)
+
+### Added
+- Marp preview zoom controls from 25% to 300%
+- **Fit** mode to keep the entire slide visible in the available viewport
+- **Width** mode to fill the editor width with vertical scrolling when needed
+- Keyboard shortcuts: `+` / `-` to zoom, `0` to fit, and `W` to fit width
+- Ctrl/Cmd + mouse wheel zoom
+- Automatic rescaling when the editor panel size changes
+
+
 ## 0.4.3 (2026-08-23)
 
 ### Fixed

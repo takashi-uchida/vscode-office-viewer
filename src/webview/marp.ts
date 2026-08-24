@@ -1,5 +1,12 @@
 import { Marp } from '@marp-team/marp-core';
 
+type ScaleMode = 'fit' | 'width' | 'custom';
+
+const MIN_ZOOM = 25;
+const MAX_ZOOM = 300;
+const ZOOM_STEP = 10;
+const SLIDE_PADDING = 32;
+
 export async function renderMarp(bytes: Uint8Array, container: HTMLElement): Promise<void> {
   const markdown = new TextDecoder().decode(bytes);
 
@@ -34,13 +41,33 @@ export async function renderMarp(bytes: Uint8Array, container: HTMLElement): Pro
   const nav = document.createElement('div');
   nav.className = 'marp-preview-nav';
 
-  const prevButton = button('◀ 前');
+  const prevButton = button('◀ 前', '前のスライド（← / PageUp）');
   const page = document.createElement('span');
   page.className = 'marp-preview-page';
-  const nextButton = button('次 ▶');
-  const modeButton = button('一覧');
+  const nextButton = button('次 ▶', '次のスライド（→ / PageDown / Space）');
+  const separator1 = separator();
+  const zoomOutButton = button('−', '縮小（−）');
+  const scale = document.createElement('span');
+  scale.className = 'marp-preview-scale';
+  const zoomInButton = button('＋', '拡大（＋）');
+  const fitButton = button('全体', 'スライド全体を表示（0）');
+  const widthButton = button('幅', '幅に合わせる（W）');
+  const separator2 = separator();
+  const modeButton = button('一覧', '全スライドの一覧表示');
 
-  nav.append(prevButton, page, nextButton, modeButton);
+  nav.append(
+    prevButton,
+    page,
+    nextButton,
+    separator1,
+    zoomOutButton,
+    scale,
+    zoomInButton,
+    fitButton,
+    widthButton,
+    separator2,
+    modeButton
+  );
 
   const viewport = document.createElement('div');
   viewport.className = 'marp-preview-viewport';
@@ -66,15 +93,19 @@ div.marpit {
   box-sizing: border-box;
 }
 .viewport.single div.marpit {
-  width: 100%;
-  height: 100%;
+  display: grid;
+  place-items: center;
+  min-width: 100%;
+  min-height: 100%;
 }
 .viewport.single div.marpit > svg[data-marpit-svg] {
   display: none;
-  width: 100%;
-  height: 100%;
-  max-width: 100%;
-  max-height: 100%;
+  width: var(--marp-preview-slide-width);
+  height: var(--marp-preview-slide-height);
+  max-width: none;
+  max-height: none;
+  flex: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
 }
 .viewport.single div.marpit > svg[data-marpit-svg].active {
   display: block;
@@ -108,8 +139,70 @@ div.marpit {
   const slides = Array.from(
     marpit.querySelectorAll<SVGElement>(':scope > svg[data-marpit-svg]')
   );
+  const viewBox = slides[0].viewBox.baseVal;
+  const slideWidth = viewBox.width || 1280;
+  const slideHeight = viewBox.height || 720;
+
   let current = 0;
   let listMode = false;
+  let scaleMode: ScaleMode = 'fit';
+  let zoomPercent = 100;
+
+  const scales = () => {
+    const availableWidth = Math.max(1, shadowViewport.clientWidth - SLIDE_PADDING);
+    const availableHeight = Math.max(1, shadowViewport.clientHeight - SLIDE_PADDING);
+    const fitScale = Math.min(availableWidth / slideWidth, availableHeight / slideHeight);
+    const widthScale = availableWidth / slideWidth;
+    return { fitScale, widthScale };
+  };
+
+  const updateScale = () => {
+    if (listMode) {
+      marpit.style.width = '';
+      marpit.style.height = '';
+      marpit.style.removeProperty('--marp-preview-slide-width');
+      marpit.style.removeProperty('--marp-preview-slide-height');
+      return;
+    }
+
+    const { fitScale, widthScale } = scales();
+    const selectedScale =
+      scaleMode === 'fit'
+        ? fitScale
+        : scaleMode === 'width'
+          ? widthScale
+          : fitScale * (zoomPercent / 100);
+    const renderedWidth = Math.max(1, Math.round(slideWidth * selectedScale));
+    const renderedHeight = Math.max(1, Math.round(slideHeight * selectedScale));
+
+    marpit.style.setProperty('--marp-preview-slide-width', `${renderedWidth}px`);
+    marpit.style.setProperty('--marp-preview-slide-height', `${renderedHeight}px`);
+    marpit.style.width = `${Math.max(shadowViewport.clientWidth, renderedWidth + SLIDE_PADDING)}px`;
+    marpit.style.height = `${Math.max(shadowViewport.clientHeight, renderedHeight + SLIDE_PADDING)}px`;
+
+    scale.textContent =
+      scaleMode === 'fit' ? '全体' : scaleMode === 'width' ? '幅' : `${zoomPercent}%`;
+    fitButton.classList.toggle('selected', scaleMode === 'fit');
+    widthButton.classList.toggle('selected', scaleMode === 'width');
+    zoomOutButton.disabled = zoomPercent <= MIN_ZOOM;
+    zoomInButton.disabled = zoomPercent >= MAX_ZOOM;
+  };
+
+  const setCustomZoom = (delta: number) => {
+    if (listMode) return;
+    if (scaleMode !== 'custom') {
+      const { fitScale, widthScale } = scales();
+      zoomPercent =
+        scaleMode === 'width' ? Math.round((widthScale / fitScale) * 100) : 100;
+    }
+    zoomPercent = clamp(
+      Math.round(zoomPercent / ZOOM_STEP) * ZOOM_STEP + delta,
+      MIN_ZOOM,
+      MAX_ZOOM
+    );
+    scaleMode = 'custom';
+    updateScale();
+  };
 
   const render = () => {
     shadowViewport.className = listMode ? 'viewport list' : 'viewport single';
@@ -118,7 +211,12 @@ div.marpit {
     modeButton.textContent = listMode ? 'スライド' : '一覧';
     prevButton.disabled = listMode || current === 0;
     nextButton.disabled = listMode || current === total - 1;
+    zoomOutButton.disabled = listMode || zoomPercent <= MIN_ZOOM;
+    zoomInButton.disabled = listMode || zoomPercent >= MAX_ZOOM;
+    fitButton.disabled = listMode;
+    widthButton.disabled = listMode;
     if (listMode) shadowViewport.scrollTop = 0;
+    requestAnimationFrame(updateScale);
   };
 
   prevButton.addEventListener('click', () => {
@@ -133,10 +231,32 @@ div.marpit {
       render();
     }
   });
+  zoomOutButton.addEventListener('click', () => setCustomZoom(-ZOOM_STEP));
+  zoomInButton.addEventListener('click', () => setCustomZoom(ZOOM_STEP));
+  fitButton.addEventListener('click', () => {
+    scaleMode = 'fit';
+    zoomPercent = 100;
+    updateScale();
+  });
+  widthButton.addEventListener('click', () => {
+    scaleMode = 'width';
+    updateScale();
+  });
   modeButton.addEventListener('click', () => {
     listMode = !listMode;
     render();
   });
+
+  viewport.addEventListener(
+    'wheel',
+    (event) => {
+      if (!listMode && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        setCustomZoom(event.deltaY < 0 ? ZOOM_STEP : -ZOOM_STEP);
+      }
+    },
+    { passive: false }
+  );
 
   const keydown = (event: KeyboardEvent) => {
     if (listMode) return;
@@ -161,25 +281,45 @@ div.marpit {
       current = total - 1;
       event.preventDefault();
       render();
+    } else if (event.key === '+' || event.key === '=') {
+      event.preventDefault();
+      setCustomZoom(ZOOM_STEP);
+    } else if (event.key === '-') {
+      event.preventDefault();
+      setCustomZoom(-ZOOM_STEP);
+    } else if (event.key === '0') {
+      scaleMode = 'fit';
+      zoomPercent = 100;
+      event.preventDefault();
+      updateScale();
+    } else if (event.key.toLowerCase() === 'w') {
+      scaleMode = 'width';
+      event.preventDefault();
+      updateScale();
     }
   };
   document.addEventListener('keydown', keydown);
 
+  const resizeObserver = new ResizeObserver(updateScale);
+  resizeObserver.observe(viewport);
+
   render();
 }
 
-function button(label: string): HTMLButtonElement {
+function button(label: string, title: string): HTMLButtonElement {
   const element = document.createElement('button');
   element.type = 'button';
   element.textContent = label;
-  element.style.cssText = [
-    'padding:5px 12px',
-    'border:1px solid var(--vscode-button-border, transparent)',
-    'border-radius:4px',
-    'background:var(--vscode-button-secondaryBackground, #3c3c3c)',
-    'color:var(--vscode-button-secondaryForeground, #fff)',
-    'cursor:pointer',
-    'font-size:13px',
-  ].join(';');
+  element.title = title;
   return element;
+}
+
+function separator(): HTMLSpanElement {
+  const element = document.createElement('span');
+  element.className = 'marp-preview-separator';
+  return element;
+}
+
+function clamp(value: number, minimum: number, maximum: number): number {
+  return Math.min(maximum, Math.max(minimum, value));
 }
