@@ -36,6 +36,8 @@ Features:
 - **Fit** mode to keep the whole slide visible (`0`)
 - **Width** mode to fill the available width (`W`)
 - Responsive scaling when the editor panel is resized
+- Local relative images and CSS background images resolved from the Markdown file directory
+- HTTPS images allowed by the webview content security policy
 - All-slides overview mode
 - Dark/light theme follows VS Code
 - HTML rendering enabled

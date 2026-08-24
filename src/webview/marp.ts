@@ -1,4 +1,6 @@
 import { Marp } from '@marp-team/marp-core';
+import type { RenderContext } from './bootstrap';
+import { resolveResourceUri, rewriteCssUrls } from './resourceUri';
 
 type ScaleMode = 'fit' | 'width' | 'custom';
 
@@ -8,7 +10,11 @@ const ZOOM_STEP = 10;
 const SLIDE_PADDING = 32;
 const FIT_SCALE_RATIO = 0.9;
 
-export async function renderMarp(bytes: Uint8Array, container: HTMLElement): Promise<void> {
+export async function renderMarp(
+  bytes: Uint8Array,
+  container: HTMLElement,
+  context: RenderContext
+): Promise<void> {
   const markdown = new TextDecoder().decode(bytes);
 
   if (!/^---\s*\n[\s\S]*?marp:\s*true[\s\S]*?\n---/m.test(markdown)) {
@@ -19,7 +25,9 @@ export async function renderMarp(bytes: Uint8Array, container: HTMLElement): Pro
     document.body.classList.contains('vscode-dark') ||
     document.body.classList.contains('vscode-high-contrast');
 
-  const { html, css } = new Marp({ html: true, math: false }).render(markdown);
+  const rendered = new Marp({ html: true, math: false }).render(markdown);
+  const html = rendered.html;
+  const css = rewriteCssUrls(rendered.css, context.baseUri);
 
   // Marp の CSS は `div.marpit > svg > foreignObject > section` を前提とする。
   // SVG だけを取り出さず、生成された div.marpit をそのまま Shadow DOM 内に保持する。
@@ -29,6 +37,7 @@ export async function renderMarp(bytes: Uint8Array, container: HTMLElement): Pro
   if (!sourceMarpit) {
     throw new Error('Marp の生成HTMLに div.marpit が見つかりません。');
   }
+  rewriteMarpResources(sourceMarpit, context.baseUri);
 
   const total = sourceMarpit.querySelectorAll(':scope > svg[data-marpit-svg]').length;
   if (total === 0) {
@@ -306,6 +315,24 @@ div.marpit {
   resizeObserver.observe(viewport);
 
   render();
+}
+
+function rewriteMarpResources(root: HTMLElement, baseUri?: string): void {
+  if (!baseUri) {
+    return;
+  }
+
+  for (const image of root.querySelectorAll<HTMLImageElement>('img[src]')) {
+    const source = image.getAttribute('src');
+    if (!source) continue;
+    image.setAttribute('src', resolveResourceUri(source, baseUri));
+  }
+
+  for (const element of root.querySelectorAll<HTMLElement>('[style]')) {
+    const inlineStyle = element.getAttribute('style');
+    if (!inlineStyle) continue;
+    element.setAttribute('style', rewriteCssUrls(inlineStyle, baseUri));
+  }
 }
 
 function button(label: string, title: string): HTMLButtonElement {

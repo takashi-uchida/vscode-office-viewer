@@ -32,11 +32,14 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
     webviewPanel: vscode.WebviewPanel
   ): Promise<void> {
     const webview = webviewPanel.webview;
+    const documentDirectory = this.dirname(document.uri);
+    const baseUri = ensureTrailingSlash(webview.asWebviewUri(documentDirectory).toString());
     webview.options = {
       enableScripts: true,
       localResourceRoots: [
         vscode.Uri.joinPath(this.context.extensionUri, 'dist'),
         vscode.Uri.joinPath(this.context.extensionUri, 'media'),
+        documentDirectory,
       ],
     };
 
@@ -51,6 +54,7 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
           kind: this.kind,
           data: base64,
           fileName: this.basename(document.uri),
+          baseUri,
         });
       } catch (err) {
         await webview.postMessage({
@@ -70,6 +74,12 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
     webviewPanel.onDidDispose(() => sub.dispose());
 
     webview.html = this.getHtml(webview);
+  }
+
+  private dirname(uri: vscode.Uri): vscode.Uri {
+    const index = uri.path.lastIndexOf('/');
+    const path = index >= 0 ? uri.path.slice(0, index + 1) : '/';
+    return uri.with({ path, query: '', fragment: '' });
   }
 
   private basename(uri: vscode.Uri): string {
@@ -92,7 +102,7 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
 
     const csp = [
       `default-src 'none'`,
-      `img-src ${webview.cspSource} blob: data:`,
+      `img-src ${webview.cspSource} blob: data: https:`,
       `style-src ${webview.cspSource} 'unsafe-inline'`,
       `font-src ${webview.cspSource} data:`,
       `script-src 'nonce-${nonce}' ${webview.cspSource}`,
@@ -122,4 +132,8 @@ export class OfficeViewerProvider implements vscode.CustomReadonlyEditorProvider
 
 function getNonce(): string {
   return randomBytes(16).toString('base64');
+}
+
+function ensureTrailingSlash(uri: string): string {
+  return uri.endsWith('/') ? uri : `${uri}/`;
 }

@@ -1,4 +1,13 @@
-type RenderFn = (bytes: Uint8Array, container: HTMLElement) => void | Promise<void>;
+export interface RenderContext {
+  fileName?: string;
+  baseUri?: string;
+}
+
+type RenderFn = (
+  bytes: Uint8Array,
+  container: HTMLElement,
+  context: RenderContext
+) => void | Promise<void>;
 
 declare function acquireVsCodeApi(): { postMessage(msg: unknown): void };
 
@@ -47,7 +56,10 @@ export function mount(render: RenderFn): void {
     containerEl.innerHTML = '';
     setStatus('プレビューを生成中…');
     try {
-      await render(base64ToBytes(msg.data), containerEl);
+      await render(base64ToBytes(msg.data), containerEl, {
+        fileName: msg.fileName,
+        baseUri: msg.baseUri,
+      });
       setStatus(null);
     } catch (err) {
       setStatus(

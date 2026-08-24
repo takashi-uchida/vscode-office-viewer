@@ -1,6 +1,15 @@
 # Changelog
 
 
+## 0.4.6 (2026-08-24)
+
+### Fixed
+- Resolve relative Marp image paths from the Markdown file directory
+- Rewrite relative `url(...)` references in generated and inline CSS for background images
+- Add the document directory to the webview local resource roots
+- Allow HTTPS images in the webview content security policy
+
+
 ## 0.4.5 (2026-08-24)
 
 ### Changed
