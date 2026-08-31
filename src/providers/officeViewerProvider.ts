@@ -5,6 +5,7 @@ export type ViewerKind =
   | 'docx'
   | 'xlsx'
   | 'csv'
+  | 'tsv'
   | 'pdf'
   | 'pptx'
   | 'mermaid'

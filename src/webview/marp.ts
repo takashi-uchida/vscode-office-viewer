@@ -147,7 +147,7 @@ div.marpit {
   container.append(nav, viewport);
 
   const slides = Array.from(
-    marpit.querySelectorAll<SVGElement>(':scope > svg[data-marpit-svg]')
+    marpit.querySelectorAll<SVGSVGElement>(':scope > svg[data-marpit-svg]')
   );
   const viewBox = slides[0].viewBox.baseVal;
   const slideWidth = viewBox.width || 1280;

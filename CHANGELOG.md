@@ -1,6 +1,11 @@
 # Changelog
 
 
+## 0.5.0 (2026-08-31)
+
+### Added
+- TSV (`.tsv`) table preview with UTF-8 and Shift_JIS decoding
+
 ## 0.4.6 (2026-08-24)
 
 ### Fixed

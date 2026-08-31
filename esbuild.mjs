@@ -58,6 +58,7 @@ const webviewConfig = {
     'webview-docx': 'src/webview/entry-docx.ts',
     'webview-xlsx': 'src/webview/entry-xlsx.ts',
     'webview-csv': 'src/webview/entry-csv.ts',
+    'webview-tsv': 'src/webview/entry-tsv.ts',
     'webview-pdf': 'src/webview/entry-pdf.ts',
     'webview-pptx': 'src/webview/entry-pptx.ts',
     'webview-mermaid': 'src/webview/entry-mermaid.ts',

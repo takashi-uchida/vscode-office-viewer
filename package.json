@@ -1,8 +1,8 @@
 {
   "name": "vscode-office-viewer",
   "displayName": "Office File Preview",
-  "description": "Read-only preview for .docx, .xlsx, .csv, .pdf, .pptx files and Marp slides inside VS Code",
-  "version": "0.4.6",
+  "description": "Read-only preview for .docx, .xlsx, .csv, .tsv, .pdf, .pptx files and Marp slides inside VS Code",
+  "version": "0.5.0",
   "publisher": "takashi-uchida",
   "author": {
     "name": "Takashi Uchida",
@@ -22,6 +22,7 @@
     "docx",
     "xlsx",
     "csv",
+    "tsv",
     "pdf",
     "pptx",
     "marp",
@@ -73,6 +74,16 @@
         "selector": [
           {
             "filenamePattern": "*.csv"
+          }
+        ],
+        "priority": "option"
+      },
+      {
+        "viewType": "officeViewer.tsv",
+        "displayName": "Office File Preview (TSV)",
+        "selector": [
+          {
+            "filenamePattern": "*.tsv"
           }
         ],
         "priority": "option"
@@ -151,6 +162,8 @@
   "scripts": {
     "compile": "node esbuild.mjs",
     "watch": "node esbuild.mjs --watch",
+    "test": "node --test tests/*.test.mjs",
+    "typecheck": "tsc --noEmit",
     "vscode:prepublish": "node esbuild.mjs --production",
     "package": "vsce package",
     "publish": "vsce publish",

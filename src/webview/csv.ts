@@ -1,9 +1,26 @@
 const INITIAL_ROWS = 1000;
 const ROW_INCREMENT = 5000;
 
+export interface DelimitedTextParser {
+  readonly done: boolean;
+  nextRows(limit: number): string[][];
+}
+
 export function renderCsv(bytes: Uint8Array, container: HTMLElement): void {
-  const text = decodeCsv(bytes);
-  const parser = createCsvParser(text);
+  renderDelimitedText(bytes, container, ',');
+}
+
+export function renderTsv(bytes: Uint8Array, container: HTMLElement): void {
+  renderDelimitedText(bytes, container, '\t');
+}
+
+function renderDelimitedText(
+  bytes: Uint8Array,
+  container: HTMLElement,
+  delimiter: string
+): void {
+  const text = decodeDelimitedText(bytes);
+  const parser = createDelimitedTextParser(text, delimiter);
 
   const pane = document.createElement('div');
   pane.className = 'xlsx-sheet csv-sheet';
@@ -59,10 +76,18 @@ function createRow(values: string[]): HTMLTableRowElement {
   return tr;
 }
 
-function createCsvParser(text: string): { readonly done: boolean; nextRows(limit: number): string[][] } {
+export function createDelimitedTextParser(
+  text: string,
+  delimiter: string
+): DelimitedTextParser {
+  if (delimiter.length !== 1 || delimiter === '"' || delimiter === '\r' || delimiter === '\n') {
+    throw new Error('Delimiter must be a single non-quote, non-newline character.');
+  }
+
   let index = 0;
   let row: string[] = [];
   let value = '';
+  let fieldStarted = false;
   let quoted = false;
   let done = false;
 
@@ -75,7 +100,7 @@ function createCsvParser(text: string): { readonly done: boolean; nextRows(limit
 
       while (!done && rows.length < limit) {
         if (index >= text.length) {
-          if (value.length > 0 || row.length > 0) {
+          if (fieldStarted || value.length > 0 || row.length > 0) {
             row.push(value);
             rows.push(row);
           }
@@ -100,16 +125,20 @@ function createCsvParser(text: string): { readonly done: boolean; nextRows(limit
         }
 
         if (ch === '"' && value.length === 0) {
+          fieldStarted = true;
           quoted = true;
-        } else if (ch === ',') {
+        } else if (ch === delimiter) {
           row.push(value);
           value = '';
+          fieldStarted = false;
         } else if (ch === '\n') {
           row.push(value);
           rows.push(row);
           row = [];
           value = '';
+          fieldStarted = false;
         } else if (ch !== '\r') {
+          fieldStarted = true;
           value += ch;
         }
       }
@@ -119,7 +148,7 @@ function createCsvParser(text: string): { readonly done: boolean; nextRows(limit
   };
 }
 
-function decodeCsv(bytes: Uint8Array): string {
+export function decodeDelimitedText(bytes: Uint8Array): string {
   try {
     return stripBom(new TextDecoder('utf-8', { fatal: true }).decode(bytes));
   } catch {

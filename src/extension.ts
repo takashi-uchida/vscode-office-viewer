@@ -5,6 +5,7 @@ const VIEW_TYPES: { viewType: string; kind: ViewerKind }[] = [
   { viewType: 'officeViewer.docx', kind: 'docx' },
   { viewType: 'officeViewer.xlsx', kind: 'xlsx' },
   { viewType: 'officeViewer.csv', kind: 'csv' },
+  { viewType: 'officeViewer.tsv', kind: 'tsv' },
   { viewType: 'officeViewer.pdf', kind: 'pdf' },
   { viewType: 'officeViewer.pptx', kind: 'pptx' },
   { viewType: 'officeViewer.mermaid', kind: 'mermaid' },

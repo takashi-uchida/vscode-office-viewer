@@ -8,7 +8,7 @@ Read-only preview for office documents, PDFs, diagrams, presentations, and marku
 |--------|-----------|----------|
 | Word | `.docx` | [docx-preview](https://github.com/VolodymyrBaydalka/docxjs) — text, headings, tables, lists, styles |
 | Excel | `.xlsx`, `.xlsm` | [SheetJS](https://sheetjs.com/) — all sheets with tab switcher |
-| CSV | `.csv` | Lightweight table preview with UTF-8 and Shift_JIS decoding |
+| CSV / TSV | `.csv`, `.tsv` | Lightweight table preview with UTF-8 and Shift_JIS decoding |
 | PDF | `.pdf` | [pdf.js](https://mozilla.github.io/pdf.js/) — all pages, high-resolution canvas |
 | PowerPoint | `.pptx` | [pptx-preview](https://github.com/meshesha/pptx-preview) — slides in list view |
 | Marp Slides | `.marp.md` | [Marp Core](https://github.com/marp-team/marp-core) — スライドプレビュー with navigation |
@@ -22,7 +22,7 @@ All previews are **read-only**. Files are never modified.
 
 Opening a `.docx`, `.xlsx`, `.pdf`, `.pptx`, `.mmd`, `.mermaid`, or `.marp.md` file automatically shows the preview.
 
-For `.csv`, `.html`, `.htm`, `.md`, and `.markdown` files (which have built-in VS Code editors), right-click the file → **Reopen Editor With…** → **Office File Preview (...)** to switch to the preview.
+For `.csv`, `.tsv`, `.html`, `.htm`, `.md`, and `.markdown` files (which have built-in VS Code editors), right-click the file → **Reopen Editor With…** → **Office File Preview (...)** to switch to the preview.
 
 ## Marp Slides Preview
 
